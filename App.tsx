@@ -1,62 +1,78 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const App: React.FC = () => {
-  const [history, setHistory] = useState('');
-  const [currentInput, setCurrentInput] = useState('');
-  const operations = ['+', '-', '*', '/'];
+  const [history, setHistory] = useState<string>('');
+  const [currentInput, setCurrentInput] = useState<string>('');
+  const operations: string[] = ['+', '-', '*', '/'];
+  const allButtons: string[] = ['C', '√', '%', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', ',', '='];
 
-  const clearDisplay = () => {
+  const clearDisplay = (): void => {
     setHistory('');
     setCurrentInput('');
   }
 
-  const handleClick = (e) => {
-    const clickedValue = e.target.textContent;
-
+  const handleCalc = (value: string): void => {
     if (currentInput.length === 0 &&
-      (clickedValue == '00' || clickedValue == '0' || clickedValue == ',' || operations.includes(clickedValue))) {
+      (value == '00' || value == '0' || value == ',' || operations.includes(value))) {
       return
     }
 
-    if (operations.includes(history.slice(-1)) && operations.includes(clickedValue)) {
+    if (operations.includes(history.slice(-1)) && operations.includes(value)) {
       return
     }
 
-    if (clickedValue == 'C') {
+    if (value == 'C') {
       clearDisplay();
       return
     }
 
-    if (operations.includes(clickedValue)) {
-      setHistory(history + clickedValue);
+    if (operations.includes(value)) {
+      setHistory(history + value);
       setCurrentInput(' ');
       return
     }
 
-    if (clickedValue == '=') {
+    if (value == '=') {
+      if (history.length === 0) return;
       const stringToCalc = history.replace(/,/igm, '.');
       setCurrentInput(eval(stringToCalc));
       return
     }
 
-    if (clickedValue == '%') {
-      const symbolsToReplace = currentInput.length;
-      setHistory(history.slice(0, -symbolsToReplace) + (currentInput * 0.01));
-      setCurrentInput(+currentInput * 0.01);
+    if (value == '%') {
+      const symbolsToReplace = currentInput.length - 1;
+      setHistory(history.slice(0, -symbolsToReplace) + (+currentInput * 0.01));
+      setCurrentInput(String(+currentInput * 0.01));
       return;
     }
 
-    if (clickedValue == '√') {
-      const symbolsToReplace = currentInput.length;
-      setHistory(history.slice(0, -symbolsToReplace) + Math.sqrt(currentInput));
-      setCurrentInput(Math.sqrt(currentInput));
+    if (value == '√') {
+      const symbolsToReplace = currentInput.length - 1;
+      setHistory(history.slice(0, -symbolsToReplace) + Math.sqrt(+currentInput));
+      setCurrentInput(String(Math.sqrt(+currentInput)));
       return
     }
 
-    setHistory(history + clickedValue);
-    setCurrentInput(currentInput + clickedValue);
+    setHistory(history + value);
+    setCurrentInput(currentInput + value);
   }
 
+  const handleKeyDown = (event: KeyboardEvent) => {
+    let pressedValue = event.key;
+    if (event.key == 'Enter') pressedValue = '=';
+    if (!allButtons.includes(pressedValue)) return;
+    handleCalc(pressedValue);
+  }
+
+  const handleClick = (e: React.SyntheticEvent) => {
+    const target = e.target as HTMLElement;
+    const clickedValue: string = target.textContent;
+    handleCalc(clickedValue);
+  }
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+  });
 
   return (
     <div className="calculator">
@@ -65,26 +81,9 @@ const App: React.FC = () => {
         <p className="currentInput">{currentInput}</p>
       </div>
       <div className="buttons">
-        <button className='button' onClick={(e) => handleClick(e)}>C</button>
-        <button className='button' onClick={(e) => handleClick(e)}>√</button>
-        <button className='button' onClick={(e) => handleClick(e)}>%</button>
-        <button className='button' onClick={(e) => handleClick(e)}>/</button>
-        <button className='button' onClick={(e) => handleClick(e)}>7</button>
-        <button className='button' onClick={(e) => handleClick(e)}>8</button>
-        <button className='button' onClick={(e) => handleClick(e)}>9</button>
-        <button className='button' onClick={(e) => handleClick(e)}>*</button>
-        <button className='button' onClick={(e) => handleClick(e)}>4</button>
-        <button className='button' onClick={(e) => handleClick(e)}>5</button>
-        <button className='button' onClick={(e) => handleClick(e)}>6</button>
-        <button className='button' onClick={(e) => handleClick(e)}>-</button>
-        <button className='button' onClick={(e) => handleClick(e)}>1</button>
-        <button className='button' onClick={(e) => handleClick(e)}>2</button>
-        <button className='button' onClick={(e) => handleClick(e)}>3</button>
-        <button className='button' onClick={(e) => handleClick(e)}>+</button>
-        <button className='button' onClick={(e) => handleClick(e)}>00</button>
-        <button className='button' onClick={(e) => handleClick(e)}>0</button>
-        <button className='button' onClick={(e) => handleClick(e)}>,</button>
-        <button className='button' onClick={(e) => handleClick(e)}>=</button>
+        {allButtons.map((item, index) => {
+          return <button key={index} className="button" onClick={(e) => handleClick(e)}>{item}</button>
+        })}
       </div>
     </div>
   )
