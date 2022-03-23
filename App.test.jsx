@@ -5,22 +5,15 @@ import App from './App';
 
 
 describe('Calculator renders', () => {
-  it('Button √ is present on the screen', () => {
-    render(<App />);
-    expect(screen.getByText('√')).toBeInTheDocument();
-  });
-  it('Button 6 is present on the screen', () => {
-    render(<App />);
-    expect(screen.getByText('6')).toBeInTheDocument();
-  });
-  it('Button = is present on the screen', () => {
-    render(<App />);
-    expect(screen.getByText('=')).toBeInTheDocument();
-  });
-  it('Button C is present on the screen', () => {
-    render(<App />);
-    expect(screen.getByText('C')).toBeInTheDocument();
-  });
+  const allButtons = ['C', '√', '%', '/', '7', '8', '9', '*', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', ',', '='];
+
+  for (let i = 0; i < 5; i++) {
+    const i = Math.ceil(Math.random() * allButtons.length) - 1;
+    it(`Button ${allButtons[i]} is present on the screen`, () => {
+      render(<App />);
+      expect(screen.getByText(allButtons[i])).toBeInTheDocument();
+    });
+  }
 });
 
 describe('Keyboard input works', () => {
@@ -33,16 +26,31 @@ describe('Keyboard input works', () => {
     buttons.forEach(item => {
       fireEvent.keyUp(document, { key: `${item}` });
     })
-    expect(screen.getAllByText(buttons.join())).toBeDefined();
+    expect(screen.getAllByText(buttons.join(''))).toBeDefined();
   });
+
   it('Keyboard inputs calculates correctly', () => {
     render(<App />);
-    fireEvent.keyUp(document, { key: '8' });
-    fireEvent.keyUp(document, { key: '3' });
-    fireEvent.keyUp(document, { key: '+' });
-    fireEvent.keyUp(document, { key: '7' });
+    const firstNumber = String(Math.round(Math.random() * 1000));
+    const secondNumber = String(Math.round(Math.random() * 1000));
+    const operations = ['+', '-', '*', '/'];
+
+    firstNumber.split('').map(item => {
+      fireEvent.keyUp(document, { key: item });
+    });
+
+    const sign = operations[Math.ceil(Math.random() * operations.length) - 1];
+    fireEvent.keyUp(document, { key: sign });
+
+    secondNumber.split('').map(item => {
+      fireEvent.keyUp(document, { key: item });
+    });
+
     fireEvent.keyUp(document, { key: '=' });
-    expect(screen.getAllByText('90')).toBeDefined();
+
+    const result = eval(firstNumber + sign + secondNumber);
+
+    expect(screen.getByText(result)).toHaveTextContent(result);
   });
 })
 
@@ -56,17 +64,32 @@ describe('Mouse input works', () => {
     buttons.forEach(item => {
       fireEvent.click(screen.getByText(item));
     });
-    expect(screen.getAllByText(buttons.join())).toBeDefined();
+    expect(screen.getAllByText(buttons.join(''))).toBeDefined();
   });
-  it('Keyboard inputs calculates correctly', () => {
+
+  it('Mouse inputs calculates correctly', () => {
     render(<App />);
-    fireEvent.click(screen.getByText('9'));
-    fireEvent.click(screen.getByText('1'));
-    fireEvent.click(screen.getByText('-'));
-    fireEvent.click(screen.getByText('2'));
-    fireEvent.click(screen.getByText('1'));
+    const firstNumber = String(Math.round(Math.random() * 1000));
+    const secondNumber = String(Math.round(Math.random() * 1000));
+    const operations = ['+', '-', '*', '/'];
+
+    firstNumber.split('').map(item => {
+      // кликаем на последний элемент со значением цифры - нужно, чтобы тест не падал, если будет несколько полей с данной цифрой
+      fireEvent.click(screen.getAllByText(item).slice(-1)[0]);
+    });
+
+    const sign = operations[Math.ceil(Math.random() * operations.length) - 1];
+    fireEvent.click(screen.getByText(sign));
+
+    secondNumber.split('').map(item => {
+      fireEvent.click(screen.getAllByText(item).slice(-1)[0]);
+    });
+
     fireEvent.click(screen.getByText('='));
-    expect(screen.getAllByText('70')).toBeDefined();
+
+    const result = eval(firstNumber + sign + secondNumber);
+
+    expect(screen.getByText(result)).toHaveTextContent(result);
   });
 });
 

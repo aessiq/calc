@@ -40,7 +40,10 @@ const App: React.FC = () => {
     }
 
     if (value == '%') {
-      const symbolsToReplace = currentInput.length - 1;
+      let symbolsToReplace = currentInput.length - 1;
+      if (history.length == currentInput.length) {
+        symbolsToReplace = currentInput.length
+      }
       setHistory(history.slice(0, -symbolsToReplace) + (+currentInput * 0.01));
       setCurrentInput(String(+currentInput * 0.01));
       return;
@@ -88,9 +91,10 @@ const App: React.FC = () => {
         <p className="currentInput">{currentInput}</p>
       </div>
       <div className="buttons">
-        {allButtons.map((item, index) => {
+        {allButtons.filter(item => item != '=').map((item, index) => {
           return <button key={index} className="button" onClick={(e) => handleClick(e)}>{item}</button>
         })}
+        <button key='=' className="button equals-button" onClick={(e) => handleClick(e)}>=</button>
       </div>
     </div>
   )
