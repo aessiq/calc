@@ -47,9 +47,12 @@ const App: React.FC = () => {
     }
 
     if (value == '√') {
-      const symbolsToReplace = currentInput.length - 1;
-      setHistory(history.slice(0, -symbolsToReplace) + Math.sqrt(+currentInput));
-      setCurrentInput(String(Math.sqrt(+currentInput)));
+      let symbolsToReplace = currentInput.length - 1;
+      if (history.length == currentInput.length) {
+        symbolsToReplace = currentInput.length
+      }
+      setHistory(history.slice(0, -symbolsToReplace) + Math.sqrt(+currentInput.replace(/,/igm, '.')));
+      setCurrentInput(String(Math.sqrt(+currentInput.replace(/,/igm, '.'))));
       return
     }
 
@@ -57,9 +60,10 @@ const App: React.FC = () => {
     setCurrentInput(currentInput + value);
   }
 
-  const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyUp = (event: KeyboardEvent) => {
     let pressedValue = event.key;
     if (event.key == 'Enter') pressedValue = '=';
+    if (event.key == 'Backspace') pressedValue = 'C';
     if (!allButtons.includes(pressedValue)) return;
     handleCalc(pressedValue);
   }
@@ -71,7 +75,10 @@ const App: React.FC = () => {
   }
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keyup', handleKeyUp);
+    }
   });
 
   return (
